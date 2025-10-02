@@ -1,0 +1,161 @@
+👇
+
+🧑‍💻 Master Prompt for Building EduVoice AI
+
+Build me a modern Progressive Web App (PWA) called “EduVoice AI” – a next-generation AI learning assistant that is voice-first, visual, and interactive.
+
+🎯 Core Features
+1. Voice-First AI Tutor
+
+A floating 🎤 mic button to start recording.
+
+Speech-to-Text (Whisper API) for user input.
+
+AI response in both text + natural voice (TTS like ElevenLabs/PlayHT).
+
+Example Flow:
+
+User: “Explain Newton’s Laws like I’m 12”
+
+AI: Speaks + shows visual diagram on canvas.
+
+2. Visual Learning Canvas (Core USP – better than Kuse.ai)
+
+Interactive drag-and-drop canvas (like Excalidraw / Miro style).
+
+Users can upload PDFs, images, YouTube links, or text notes.
+
+AI extracts concepts and auto-generates mind maps, flowcharts, and connections between topics.
+
+Example:
+
+Input: “Photosynthesis PDF + Biology Lecture Video”
+
+Canvas Output: AI links sunlight → chlorophyll → glucose → oxygen, with visual nodes.
+
+Canvas supports:
+
+Zoom & Pan
+
+Export to PNG/PDF
+
+AI commands: “Show how X relates to Y”.
+
+3. Smart Test Generator
+
+AI detects user weak areas from past questions/doubts.
+
+Generates MCQs, quizzes, or practice sheets automatically.
+
+Option to export/download test as PDF.
+
+Example:
+
+User: “Give me 5 questions on Trigonometry from today’s study”
+
+AI generates quiz with answers.
+
+4. Multi-Modal Input
+
+📸 Upload image or handwritten notes → AI solves problems step-by-step.
+
+📑 Upload PDFs → AI summarizes chapters + creates test questions.
+
+🎥 YouTube/lecture video link → AI extracts key timestamps + summary.
+
+✍️ AI handwriting recognition for math/physics problems.
+
+5. Personalized AI Teacher
+
+Saves user profile, progress, learning style.
+
+AI adapts answers (kid mode, college level, advanced learner).
+
+For Teachers: Generate lesson plans, share visual canvases, track student progress.
+
+🎨 UI/UX Design Requirements
+
+Clean, futuristic student-friendly UI.
+
+Dark / Light mode toggle.
+
+Layout:
+
+Sidebar: uploaded materials (PDFs, videos, notes).
+
+Main Area: Visual Canvas.
+
+Bottom Panel: Chat interface (text + voice).
+
+Floating 🎤 Mic button for instant “Ask AI”.
+
+Export options: PDF, PNG, Quiz.
+
+🛠️ Tech Stack
+
+Frontend: React + TailwindCSS + Canvas library (Konva.js or Excalidraw clone).
+
+Voice: Whisper API (STT) + ElevenLabs/PlayHT (TTS).
+
+Backend: Node.js + Python AI microservices.
+
+AI Models:
+
+GPT/Claude → explanations & quizzes
+
+Vision model (Claude Vision / Gemini Vision) → images & videos
+
+Database: MongoDB (user data, uploads, quizzes) + Redis (cache).
+
+Realtime: WebSockets for voice + canvas updates.
+
+💰 Monetization Hooks
+
+Free Tier: Limited queries, basic canvas.
+
+Student Pro (₹499/month): Unlimited AI queries + quizzes.
+
+Teacher Pro (₹999/month): Lesson planning + analytics.
+
+Stripe/Razorpay placeholders for payment gateway.
+
+📢 Website Content
+Hero Section
+
+Headline: “Meet EduVoice AI – The Talking Visual Learning Platform”
+Subtext: “Your AI teacher that listens, sees, and teaches you visually”
+CTA Buttons: [🎤 Try Voice Demo] [📖 Watch Demo]
+
+Demo Section
+
+GIF/video of student asking AI a question → AI creates mind map + explains in voice.
+
+Feature Highlights (cards)
+
+🎤 Voice Tutor
+
+🧩 Visual Canvas
+
+📑 Smart Test Generator
+
+📊 Teacher Tools
+
+✅ Deliverables (MVP Website)
+
+Landing Page (Hero + Features + CTA).
+
+AI Chat Interface (voice + text input).
+
+Visual Canvas (drag-drop + AI nodes).
+
+PDF/Image Upload → AI extracts & explains.
+
+Smart Test Generator (basic quiz).
+
+User Auth (Google Login).
+
+Free Tier Limits (placeholder logic).
+
+🔥 Goal
+
+Create a better, more unique version of Kuse.ai focused on education + voice-first AI + visual canvas + test prep.
