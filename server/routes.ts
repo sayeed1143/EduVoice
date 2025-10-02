@@ -56,6 +56,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/profile", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const user = await storage.getUser(req.userId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
@@ -68,6 +71,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/users/profile", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const updates = z.object({
         language: z.string().optional(),
         plan: z.string().optional()
@@ -86,6 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Materials routes
   app.get("/api/materials", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const materials = await storage.getMaterialsByUser(req.userId);
       res.json({ materials });
     } catch (error) {
@@ -95,6 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/materials/upload", requireAuth, upload.single('file'), async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
@@ -160,6 +172,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/materials/youtube", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const { url } = z.object({ url: z.string().url() }).parse(req.body);
       
       // Extract video ID from YouTube URL
@@ -205,6 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat/Conversation routes
   app.get("/api/conversations", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const conversations = await storage.getConversationsByUser(req.userId);
       res.json({ conversations });
     } catch (error) {
@@ -214,6 +232,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/conversations", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const { title } = z.object({ title: z.string().optional() }).parse(req.body);
       
       const conversationData = {
@@ -328,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         text: transcription.text,
-        duration: transcription.duration || 0
+        duration: 0
       });
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Transcription failed' });
@@ -362,6 +383,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mind map routes
   app.get("/api/mindmaps", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const mindMaps = await storage.getMindMapsByUser(req.userId);
       res.json({ mindMaps });
     } catch (error) {
@@ -371,6 +395,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/mindmaps", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const mindMapData = insertMindMapSchema.extend({
         userId: z.string()
       }).parse({ ...req.body, userId: req.userId });
@@ -384,6 +411,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/mindmaps/generate", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const { materialIds, topic } = z.object({
         materialIds: z.array(z.string()),
         topic: z.string()
@@ -471,6 +501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quiz routes
   app.get("/api/quizzes", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const quizzes = await storage.getQuizzesByUser(req.userId);
       res.json({ quizzes });
     } catch (error) {
@@ -480,6 +513,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quizzes/generate", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const { materialIds, topic, difficulty, numQuestions } = z.object({
         materialIds: z.array(z.string()),
         topic: z.string(),
@@ -543,6 +579,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quizzes/:id/attempt", requireAuth, async (req, res) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'User ID missing' });
+      }
       const { id } = req.params;
       const { answers } = z.object({
         answers: z.record(z.string()) // questionId -> selectedAnswer

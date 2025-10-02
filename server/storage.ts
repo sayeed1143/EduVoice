@@ -126,8 +126,10 @@ export class MemStorage implements IStorage {
   async createMaterial(material: InsertMaterial & { userId: string }): Promise<Material> {
     const id = randomUUID();
     const newMaterial: Material = { 
-      ...material, 
+      ...material,
       id,
+      content: material.content || null,
+      metadata: material.metadata || null,
       uploadedAt: new Date() 
     };
     this.materials.set(id, newMaterial);
@@ -150,7 +152,8 @@ export class MemStorage implements IStorage {
   async createConversation(conversation: InsertConversation & { userId: string }): Promise<Conversation> {
     const id = randomUUID();
     const newConversation: Conversation = { 
-      ...conversation, 
+      ...conversation,
+      title: conversation.title || null,
       id,
       createdAt: new Date() 
     };
@@ -181,7 +184,9 @@ export class MemStorage implements IStorage {
   async createMessage(message: InsertMessage): Promise<Message> {
     const id = randomUUID();
     const newMessage: Message = { 
-      ...message, 
+      ...message,
+      audioUrl: message.audioUrl || null,
+      materialIds: message.materialIds || null,
       id,
       timestamp: new Date() 
     };
@@ -201,7 +206,8 @@ export class MemStorage implements IStorage {
   async createMindMap(mindMap: InsertMindMap & { userId: string }): Promise<MindMap> {
     const id = randomUUID();
     const newMindMap: MindMap = { 
-      ...mindMap, 
+      ...mindMap,
+      materialIds: mindMap.materialIds || null,
       id,
       createdAt: new Date(),
       updatedAt: new Date() 
@@ -235,7 +241,8 @@ export class MemStorage implements IStorage {
   async createQuiz(quiz: InsertQuiz & { userId: string }): Promise<Quiz> {
     const id = randomUUID();
     const newQuiz: Quiz = { 
-      ...quiz, 
+      ...quiz,
+      materialIds: quiz.materialIds || null,
       id,
       difficulty: quiz.difficulty || "medium",
       createdAt: new Date() 
