@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, requireAuth, requireRole } from "./auth";
-import OpenAI from "openai";
 import multer from "multer";
 import fs from "fs";
 import { z } from "zod";
@@ -15,11 +14,7 @@ import {
   insertQuizSchema,
   insertQuizAttemptSchema
 } from "@shared/schema";
-
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
-});
+import { createOpenRouterClient, OPENROUTER_MODELS } from "../lib/openrouter";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -107,10 +102,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // TODO: Implement PDF text extraction
         type = "pdf";
       } else if (mimetype.startsWith('image/')) {
-        // Use OpenAI Vision for image analysis
+        // Use OpenRouter Vision for image analysis
         const base64Image = fs.readFileSync(path, 'base64');
-        const visionResponse = await openai.chat.completions.create({
-          model: "gpt-5",
+        const openrouterClient = createOpenRouterClient();
+        const visionResponse = await openrouterClient.chat({
+          model: OPENROUTER_MODELS.VISION,
           messages: [
             {
               role: "user",
@@ -128,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ]
             }
           ],
-          max_completion_tokens: 2048
+          max_tokens: 2048
         });
         content = visionResponse.choices[0].message.content || "";
         type = "image";
@@ -288,13 +284,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       Respond with helpful educational content. If the user asks about creating a mind map or visual representation, mention that you can help visualize the concepts on the canvas.`;
 
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-5",
+      const openrouterClient = createOpenRouterClient();
+      const aiResponse = await openrouterClient.chat({
+        model: OPENROUTER_MODELS.CHAT,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content }
         ],
-        max_completion_tokens: 2048
+        max_tokens: 2048
       });
 
       const assistantMessage = await storage.createMessage({
@@ -313,51 +310,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Voice transcription
+  // Voice transcription - Note: Whisper API not available via OpenRouter
+  // Using browser Web Speech API instead (handled client-side)
   app.post("/api/voice/transcribe", requireAuth, upload.single('audio'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No audio file provided' });
       }
 
-      const audioReadStream = fs.createReadStream(req.file.path);
-
-      const transcription = await openai.audio.transcriptions.create({
-        file: audioReadStream,
-        model: "whisper-1",
-      });
-
       // Clean up uploaded file
       fs.unlinkSync(req.file.path);
 
-      res.json({ 
-        text: transcription.text,
-        duration: 0
+      // Return message that transcription should be handled client-side
+      res.status(501).json({ 
+        error: 'Server-side transcription not available. Please use browser Web Speech API for voice input.'
       });
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Transcription failed' });
     }
   });
 
-  // Text-to-speech
+  // Text-to-speech - Note: TTS not available via OpenRouter
+  // Using browser Web Speech API instead (handled client-side)
   app.post("/api/voice/speak", requireAuth, async (req, res) => {
     try {
-      const { text } = z.object({ text: z.string() }).parse(req.body);
-
-      const mp3 = await openai.audio.speech.create({
-        model: "tts-1",
-        voice: "alloy",
-        input: text,
+      res.status(501).json({
+        error: 'Server-side TTS not available. Please use browser Web Speech API for voice output.'
       });
-
-      const buffer = Buffer.from(await mp3.arrayBuffer());
-      
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Length': buffer.length
-      });
-      
-      res.send(buffer);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Text-to-speech failed' });
     }
@@ -439,11 +418,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]
       }`;
 
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-5",
+      const openrouterClient = createOpenRouterClient();
+      const aiResponse = await openrouterClient.chat({
+        model: OPENROUTER_MODELS.REASONING,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_completion_tokens: 2048
+        max_tokens: 2048
       });
 
       const mindMapStructure = JSON.parse(aiResponse.choices[0].message.content || "{}");
@@ -537,11 +517,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       Make sure questions are educational, accurate, and test understanding of key concepts.`;
 
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-5",
+      const openrouterClient = createOpenRouterClient();
+      const aiResponse = await openrouterClient.chat({
+        model: OPENROUTER_MODELS.REASONING,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_completion_tokens: 2048
+        max_tokens: 2048
       });
 
       const quizData = JSON.parse(aiResponse.choices[0].message.content || "{}");
