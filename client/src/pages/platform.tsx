@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MaterialsSidebar } from "@/components/materials/materials-sidebar";
-import { InteractiveCanvas } from "@/components/canvas/interactive-canvas";
+import { StudyCanvas3D } from "@/components/canvas/3d-study-canvas";
 import { ChatInterface } from "@/components/chat/chat-interface";
 import { QuizGenerator } from "@/components/quiz/quiz-generator";
 import { FloatingVoiceButton } from "@/components/layout/floating-voice-button";
@@ -149,29 +149,13 @@ export default function Platform() {
             {/* Canvas Tab */}
             <TabsContent value="canvas" className="h-full m-0">
               <div className="h-full">
-                {selectedMaterialIds.length > 0 ? (
-                  <InteractiveCanvas
-                    mindMapData={currentMindMapData}
-                    onNodeUpdate={(nodes, connections) => {
-                      // Save canvas state
-                      console.log('Canvas updated:', { nodes, connections });
-                    }}
-                    className="h-full"
-                  />
-                ) : (
-                  <div className="h-full flex items-center justify-center bg-muted/10">
-                    <Card className="p-8 max-w-md text-center">
-                      <Brain className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                      <h3 className="text-lg font-semibold mb-2">No Materials Selected</h3>
-                      <p className="text-muted-foreground text-sm mb-4">
-                        Select materials from the sidebar to start creating mind maps and visual representations
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Try uploading a PDF, image, or adding a YouTube video to get started
-                      </p>
-                    </Card>
-                  </div>
-                )}
+                <StudyCanvas3D
+                  nodes={currentMindMapData?.nodes}
+                  connections={currentMindMapData?.connections}
+                  onNodeClick={(nodeId) => {
+                    console.log('Node clicked:', nodeId);
+                  }}
+                />
               </div>
             </TabsContent>
 
