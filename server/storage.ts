@@ -12,9 +12,18 @@ import {
   type Quiz,
   type InsertQuiz,
   type QuizAttempt,
-  type InsertQuizAttempt
+  type InsertQuizAttempt,
+  users,
+  materials,
+  conversations,
+  messages,
+  mindMaps,
+  quizzes,
+  quizAttempts
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -276,4 +285,141 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+
+  async getMaterial(id: string): Promise<Material | undefined> {
+    const result = await db.select().from(materials).where(eq(materials.id, id));
+    return result[0];
+  }
+
+  async getMaterialsByUser(userId: string): Promise<Material[]> {
+    return await db.select().from(materials).where(eq(materials.userId, userId));
+  }
+
+  async createMaterial(material: InsertMaterial & { userId: string }): Promise<Material> {
+    const result = await db.insert(materials).values(material).returning();
+    return result[0];
+  }
+
+  async deleteMaterial(id: string): Promise<boolean> {
+    const result = await db.delete(materials).where(eq(materials.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getConversation(id: string): Promise<Conversation | undefined> {
+    const result = await db.select().from(conversations).where(eq(conversations.id, id));
+    return result[0];
+  }
+
+  async getConversationsByUser(userId: string): Promise<Conversation[]> {
+    return await db.select().from(conversations).where(eq(conversations.userId, userId));
+  }
+
+  async createConversation(conversation: InsertConversation & { userId: string }): Promise<Conversation> {
+    const result = await db.insert(conversations).values(conversation).returning();
+    return result[0];
+  }
+
+  async deleteConversation(id: string): Promise<boolean> {
+    await db.delete(messages).where(eq(messages.conversationId, id));
+    const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getMessage(id: string): Promise<Message | undefined> {
+    const result = await db.select().from(messages).where(eq(messages.id, id));
+    return result[0];
+  }
+
+  async getMessagesByConversation(conversationId: string): Promise<Message[]> {
+    return await db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(asc(messages.timestamp));
+  }
+
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const result = await db.insert(messages).values(message).returning();
+    return result[0];
+  }
+
+  async getMindMap(id: string): Promise<MindMap | undefined> {
+    const result = await db.select().from(mindMaps).where(eq(mindMaps.id, id));
+    return result[0];
+  }
+
+  async getMindMapsByUser(userId: string): Promise<MindMap[]> {
+    return await db.select().from(mindMaps).where(eq(mindMaps.userId, userId));
+  }
+
+  async createMindMap(mindMap: InsertMindMap & { userId: string }): Promise<MindMap> {
+    const result = await db.insert(mindMaps).values(mindMap).returning();
+    return result[0];
+  }
+
+  async updateMindMap(id: string, updates: Partial<MindMap>): Promise<MindMap | undefined> {
+    const result = await db.update(mindMaps).set({ ...updates, updatedAt: new Date() }).where(eq(mindMaps.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteMindMap(id: string): Promise<boolean> {
+    const result = await db.delete(mindMaps).where(eq(mindMaps.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getQuiz(id: string): Promise<Quiz | undefined> {
+    const result = await db.select().from(quizzes).where(eq(quizzes.id, id));
+    return result[0];
+  }
+
+  async getQuizzesByUser(userId: string): Promise<Quiz[]> {
+    return await db.select().from(quizzes).where(eq(quizzes.userId, userId));
+  }
+
+  async createQuiz(quiz: InsertQuiz & { userId: string }): Promise<Quiz> {
+    const result = await db.insert(quizzes).values(quiz).returning();
+    return result[0];
+  }
+
+  async deleteQuiz(id: string): Promise<boolean> {
+    const result = await db.delete(quizzes).where(eq(quizzes.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getQuizAttempt(id: string): Promise<QuizAttempt | undefined> {
+    const result = await db.select().from(quizAttempts).where(eq(quizAttempts.id, id));
+    return result[0];
+  }
+
+  async getQuizAttemptsByUser(userId: string): Promise<QuizAttempt[]> {
+    return await db.select().from(quizAttempts).where(eq(quizAttempts.userId, userId));
+  }
+
+  async createQuizAttempt(attempt: InsertQuizAttempt & { userId: string }): Promise<QuizAttempt> {
+    const result = await db.insert(quizAttempts).values(attempt).returning();
+    return result[0];
+  }
+}
+
+export const storage = new DatabaseStorage();
