@@ -25,6 +25,7 @@ import {
   BarChart
 } from "lucide-react";
 import { FloatingVoiceButton } from "@/components/layout/floating-voice-button";
+import { ParticleBackground } from "@/components/effects/particle-background";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -135,7 +136,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <ParticleBackground />
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 overflow-hidden">
         {/* Background Elements */}
