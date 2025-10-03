@@ -375,20 +375,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversation(id: string): Promise<Conversation | undefined> {
+    const db = this.db;
     const result = await db.select().from(conversations).where(eq(conversations.id, id));
     return result[0];
   }
 
   async getConversationsByUser(userId: string): Promise<Conversation[]> {
+    const db = this.db;
     return await db.select().from(conversations).where(eq(conversations.userId, userId));
   }
 
   async createConversation(conversation: InsertConversation & { userId: string }): Promise<Conversation> {
+    const db = this.db;
     const result = await db.insert(conversations).values(conversation).returning();
     return result[0];
   }
 
   async deleteConversation(id: string): Promise<boolean> {
+    const db = this.db;
     await db.delete(messages).where(eq(messages.conversationId, id));
     const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
     return result.length > 0;
