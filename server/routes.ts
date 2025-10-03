@@ -17,8 +17,10 @@ import {
 import { createOpenRouterClient, OPENROUTER_MODELS } from "../lib/openrouter";
 
 // Configure multer for file uploads
+// Use /tmp for Vercel serverless environment, uploads/ for local development
+const uploadDir = process.env.VERCEL ? '/tmp' : 'uploads/';
 const upload = multer({ 
-  dest: 'uploads/',
+  dest: uploadDir,
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 

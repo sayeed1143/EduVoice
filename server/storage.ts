@@ -301,7 +301,15 @@ export class DatabaseStorage implements IStorage {
   public sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
+    // Only use PostgreSQL session store for non-Vercel environments
+    // On Vercel, we use JWT tokens instead of sessions
+    if (process.env.VERCEL || process.env.USE_JWT_AUTH === 'true') {
+      const createMemoryStore = require("memorystore");
+      const MemoryStore = createMemoryStore(session);
+      this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+    } else {
+      this.sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
+    }
   }
 
   async getUser(id: string): Promise<User | undefined> {
