@@ -322,26 +322,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.username, username));
     return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.email, email));
     return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const db = this.db;
     const result = await db.insert(users).values(insertUser).returning();
     return result[0];
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return result[0];
   }
