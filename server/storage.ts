@@ -27,7 +27,6 @@ import { eq, asc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-
 const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
@@ -87,9 +86,7 @@ export class MemStorage implements IStorage {
   private quizAttempts: Map<string, QuizAttempt>;
 
   constructor() {
-    const createMemoryStore = require("memorystore");
-    const MemoryStore = createMemoryStore(session);
-    this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+    this.sessionStore = new session.MemoryStore();
     this.users = new Map();
     this.materials = new Map();
     this.conversations = new Map();
@@ -299,153 +296,189 @@ export class MemStorage implements IStorage {
 
 export class DatabaseStorage implements IStorage {
   public sessionStore: session.Store;
+  private readonly db: NonNullable<typeof db>;
+  private readonly pool: NonNullable<typeof pool>;
 
   constructor() {
+    if (!db || !pool) {
+      throw new Error("DATABASE_URL must be set to use DatabaseStorage.");
+    }
+
+    this.db = db;
+    this.pool = pool;
+
     // Only use PostgreSQL session store for non-Vercel environments
     // On Vercel, we use JWT tokens instead of sessions
     if (process.env.VERCEL || process.env.USE_JWT_AUTH === 'true') {
-      const createMemoryStore = require("memorystore");
-      const MemoryStore = createMemoryStore(session);
-      this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+      this.sessionStore = new session.MemoryStore();
     } else {
-      this.sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
+      this.sessionStore = new PostgresSessionStore({ pool: this.pool, createTableIfMissing: true });
     }
   }
 
   async getUser(id: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.username, username));
     return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.select().from(users).where(eq(users.email, email));
     return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const db = this.db;
     const result = await db.insert(users).values(insertUser).returning();
     return result[0];
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const db = this.db;
     const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return result[0];
   }
 
   async getMaterial(id: string): Promise<Material | undefined> {
+    const db = this.db;
     const result = await db.select().from(materials).where(eq(materials.id, id));
     return result[0];
   }
 
   async getMaterialsByUser(userId: string): Promise<Material[]> {
+    const db = this.db;
     return await db.select().from(materials).where(eq(materials.userId, userId));
   }
 
   async createMaterial(material: InsertMaterial & { userId: string }): Promise<Material> {
+    const db = this.db;
     const result = await db.insert(materials).values(material).returning();
     return result[0];
   }
 
   async deleteMaterial(id: string): Promise<boolean> {
+    const db = this.db;
     const result = await db.delete(materials).where(eq(materials.id, id)).returning();
     return result.length > 0;
   }
 
   async getConversation(id: string): Promise<Conversation | undefined> {
+    const db = this.db;
     const result = await db.select().from(conversations).where(eq(conversations.id, id));
     return result[0];
   }
 
   async getConversationsByUser(userId: string): Promise<Conversation[]> {
+    const db = this.db;
     return await db.select().from(conversations).where(eq(conversations.userId, userId));
   }
 
   async createConversation(conversation: InsertConversation & { userId: string }): Promise<Conversation> {
+    const db = this.db;
     const result = await db.insert(conversations).values(conversation).returning();
     return result[0];
   }
 
   async deleteConversation(id: string): Promise<boolean> {
+    const db = this.db;
     await db.delete(messages).where(eq(messages.conversationId, id));
     const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
     return result.length > 0;
   }
 
   async getMessage(id: string): Promise<Message | undefined> {
+    const db = this.db;
     const result = await db.select().from(messages).where(eq(messages.id, id));
     return result[0];
   }
 
   async getMessagesByConversation(conversationId: string): Promise<Message[]> {
+    const db = this.db;
     return await db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(asc(messages.timestamp));
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
+    const db = this.db;
     const result = await db.insert(messages).values(message).returning();
     return result[0];
   }
 
   async getMindMap(id: string): Promise<MindMap | undefined> {
+    const db = this.db;
     const result = await db.select().from(mindMaps).where(eq(mindMaps.id, id));
     return result[0];
   }
 
   async getMindMapsByUser(userId: string): Promise<MindMap[]> {
+    const db = this.db;
     return await db.select().from(mindMaps).where(eq(mindMaps.userId, userId));
   }
 
   async createMindMap(mindMap: InsertMindMap & { userId: string }): Promise<MindMap> {
+    const db = this.db;
     const result = await db.insert(mindMaps).values(mindMap).returning();
     return result[0];
   }
 
   async updateMindMap(id: string, updates: Partial<MindMap>): Promise<MindMap | undefined> {
+    const db = this.db;
     const result = await db.update(mindMaps).set({ ...updates, updatedAt: new Date() }).where(eq(mindMaps.id, id)).returning();
     return result[0];
   }
 
   async deleteMindMap(id: string): Promise<boolean> {
+    const db = this.db;
     const result = await db.delete(mindMaps).where(eq(mindMaps.id, id)).returning();
     return result.length > 0;
   }
 
   async getQuiz(id: string): Promise<Quiz | undefined> {
+    const db = this.db;
     const result = await db.select().from(quizzes).where(eq(quizzes.id, id));
     return result[0];
   }
 
   async getQuizzesByUser(userId: string): Promise<Quiz[]> {
+    const db = this.db;
     return await db.select().from(quizzes).where(eq(quizzes.userId, userId));
   }
 
   async createQuiz(quiz: InsertQuiz & { userId: string }): Promise<Quiz> {
+    const db = this.db;
     const result = await db.insert(quizzes).values(quiz).returning();
     return result[0];
   }
 
   async deleteQuiz(id: string): Promise<boolean> {
+    const db = this.db;
     const result = await db.delete(quizzes).where(eq(quizzes.id, id)).returning();
     return result.length > 0;
   }
 
   async getQuizAttempt(id: string): Promise<QuizAttempt | undefined> {
+    const db = this.db;
     const result = await db.select().from(quizAttempts).where(eq(quizAttempts.id, id));
     return result[0];
   }
 
   async getQuizAttemptsByUser(userId: string): Promise<QuizAttempt[]> {
+    const db = this.db;
     return await db.select().from(quizAttempts).where(eq(quizAttempts.userId, userId));
   }
 
   async createQuizAttempt(attempt: InsertQuizAttempt & { userId: string }): Promise<QuizAttempt> {
+    const db = this.db;
     const result = await db.insert(quizAttempts).values(attempt).returning();
     return result[0];
   }
 }
 
-export const storage = new DatabaseStorage();
+const hasDatabase = Boolean(db && pool);
+export const storage: IStorage = hasDatabase ? new DatabaseStorage() : new MemStorage();
