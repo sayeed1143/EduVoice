@@ -485,4 +485,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+const hasDatabase = Boolean(db && pool);
+export const storage: IStorage = hasDatabase ? new DatabaseStorage() : new MemStorage();
