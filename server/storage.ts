@@ -416,58 +416,70 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMindMap(id: string): Promise<MindMap | undefined> {
+    const db = this.db;
     const result = await db.select().from(mindMaps).where(eq(mindMaps.id, id));
     return result[0];
   }
 
   async getMindMapsByUser(userId: string): Promise<MindMap[]> {
+    const db = this.db;
     return await db.select().from(mindMaps).where(eq(mindMaps.userId, userId));
   }
 
   async createMindMap(mindMap: InsertMindMap & { userId: string }): Promise<MindMap> {
+    const db = this.db;
     const result = await db.insert(mindMaps).values(mindMap).returning();
     return result[0];
   }
 
   async updateMindMap(id: string, updates: Partial<MindMap>): Promise<MindMap | undefined> {
+    const db = this.db;
     const result = await db.update(mindMaps).set({ ...updates, updatedAt: new Date() }).where(eq(mindMaps.id, id)).returning();
     return result[0];
   }
 
   async deleteMindMap(id: string): Promise<boolean> {
+    const db = this.db;
     const result = await db.delete(mindMaps).where(eq(mindMaps.id, id)).returning();
     return result.length > 0;
   }
 
   async getQuiz(id: string): Promise<Quiz | undefined> {
+    const db = this.db;
     const result = await db.select().from(quizzes).where(eq(quizzes.id, id));
     return result[0];
   }
 
   async getQuizzesByUser(userId: string): Promise<Quiz[]> {
+    const db = this.db;
     return await db.select().from(quizzes).where(eq(quizzes.userId, userId));
   }
 
   async createQuiz(quiz: InsertQuiz & { userId: string }): Promise<Quiz> {
+    const db = this.db;
     const result = await db.insert(quizzes).values(quiz).returning();
     return result[0];
   }
 
   async deleteQuiz(id: string): Promise<boolean> {
+    const db = this.db;
     const result = await db.delete(quizzes).where(eq(quizzes.id, id)).returning();
     return result.length > 0;
   }
 
   async getQuizAttempt(id: string): Promise<QuizAttempt | undefined> {
+    const db = this.db;
     const result = await db.select().from(quizAttempts).where(eq(quizAttempts.id, id));
     return result[0];
   }
 
   async getQuizAttemptsByUser(userId: string): Promise<QuizAttempt[]> {
+    const db = this.db;
     return await db.select().from(quizAttempts).where(eq(quizAttempts.userId, userId));
   }
 
   async createQuizAttempt(attempt: InsertQuizAttempt & { userId: string }): Promise<QuizAttempt> {
+    const db = this.db;
     const result = await db.insert(quizAttempts).values(attempt).returning();
     return result[0];
   }
