@@ -2,14 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/**/*.ts",
-      "use": "@vercel/node"
+      "src": "server/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": "dist/public/**"
+      }
     },
     {
-      "src": "client/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist/public"
       }
     }
   ],
@@ -19,13 +22,11 @@
       "dest": "/server/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/client/dist/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "status": 404,
-      "dest": "/client/dist/index.html"
+      "dest": "/index.html"
     }
   ]
 }
