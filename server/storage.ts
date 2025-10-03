@@ -27,8 +27,6 @@ import { eq, asc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-import createMemoryStore from "memorystore";
-
 const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
@@ -88,8 +86,7 @@ export class MemStorage implements IStorage {
   private quizAttempts: Map<string, QuizAttempt>;
 
   constructor() {
-    const MemoryStore = createMemoryStore(session);
-    this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+    this.sessionStore = new session.MemoryStore();
     this.users = new Map();
     this.materials = new Map();
     this.conversations = new Map();
@@ -313,8 +310,7 @@ export class DatabaseStorage implements IStorage {
     // Only use PostgreSQL session store for non-Vercel environments
     // On Vercel, we use JWT tokens instead of sessions
     if (process.env.VERCEL || process.env.USE_JWT_AUTH === 'true') {
-      const MemoryStore = createMemoryStore(session);
-      this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+      this.sessionStore = new session.MemoryStore();
     } else {
       this.sessionStore = new PostgresSessionStore({ pool: this.pool, createTableIfMissing: true });
     }
