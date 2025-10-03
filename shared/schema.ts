@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
+  role: text("role").notNull().default("student"), // student, teacher
   plan: text("plan").notNull().default("free"), // free, student_pro, teacher_pro
   language: text("language").notNull().default("en"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -75,6 +76,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
+  role: true,
   language: true,
   plan: true,
 });

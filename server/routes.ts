@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, requireAuth, requireRole } from "./auth";
 import OpenAI from "openai";
 import multer from "multer";
 import fs from "fs";
@@ -28,30 +29,12 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Authentication middleware (simplified)
-  const requireAuth = (req: any, res: any, next: any) => {
-    const userId = req.headers['x-user-id'];
-    if (!userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    req.userId = userId;
-    next();
-  };
+  // Setup authentication (handles /api/register, /api/login, /api/logout, /api/user)
+  setupAuth(app);
 
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
-  });
-
-  // User routes
-  app.post("/api/users/register", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(userData);
-      res.json({ user: { ...user, password: undefined } });
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : 'Registration failed' });
-    }
   });
 
   app.get("/api/users/profile", requireAuth, async (req, res) => {

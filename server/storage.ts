@@ -24,8 +24,15 @@ import {
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, asc } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
+
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
+  sessionStore: session.Store;
+  
   // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -70,6 +77,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  public sessionStore: session.Store;
   private users: Map<string, User>;
   private materials: Map<string, Material>;
   private conversations: Map<string, Conversation>;
@@ -79,6 +87,9 @@ export class MemStorage implements IStorage {
   private quizAttempts: Map<string, QuizAttempt>;
 
   constructor() {
+    const createMemoryStore = require("memorystore");
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
     this.users = new Map();
     this.materials = new Map();
     this.conversations = new Map();
@@ -106,6 +117,7 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id, 
+      role: insertUser.role || "student",
       plan: insertUser.plan || "free",
       language: insertUser.language || "en",
       createdAt: new Date() 
@@ -286,6 +298,12 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  public sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({ pool, createTableIfMissing: true });
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
